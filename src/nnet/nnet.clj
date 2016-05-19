@@ -1,15 +1,6 @@
 (ns nnet.nnet
   (:require (incanter [core :refer :all]))) 
 
-;(use '(incanter core stats charts io))
-
-
-(def A (matrix [[1 2 3] [4 5 6] [7 8 9]]))
-
-
-(def v (vector 1 2 3))
-
-
 (def wh (matrix [[0.362985 0.418378] [-0.464489 -0.554121] [-0.720958 0.504430]]))
 (def wo (vector [0.620124 -0.446396 0.692502]))
 
@@ -31,10 +22,7 @@
   [i w]
   (map activation-function (mmult i w)))
 
-(def q (activation-function 1.2))
 
-
-(def abc (plus wh wh))
 
 
 
