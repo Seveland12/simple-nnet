@@ -2,12 +2,7 @@
 
 This is a simple multilayer perceptron implementation in Clojure.
 
-The basic idea is the following "functional" interpretation of my
-Masters Thesis.
-
-Input => Output
-
-Input => Evaluate Hidden Layer => Evaluate Output Layer
+It's just a way for me to play around with Github, Clojure, and Incanter.
 
 
 ## Installation
@@ -40,5 +35,4 @@ FIXME: listing of options this app accepts.
 
 Copyright © 2016 FIXME
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the GPL v3.0
