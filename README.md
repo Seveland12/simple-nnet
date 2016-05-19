@@ -1,6 +1,14 @@
 # nnet
 
-FIXME: description
+This is a simple multilayer perceptron implementation in Clojure.
+
+The basic idea is the following "functional" interpretation of my
+Masters Thesis.
+
+Input => Output
+
+Input => Evaluate Hidden Layer => Evaluate Output Layer
+
 
 ## Installation
 
