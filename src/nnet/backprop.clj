@@ -1,11 +1,10 @@
 (ns nnet.backprop
   (:require (incanter [core :refer :all]))
-  (:use [nnet.nnet :as n :only [activation-function
-                                hidden-layer
-                                output-layer
-                                evaluate-network]]
-        [nnet.math-utilities :as utils :only [approx-equals?]])
-  (:import [nnet.nnet NeuralNet])) 
+  (:use ;; [nnet.nnet :as n :only [activation-function
+        ;;                         hidden-layer
+        ;;                         output-layer
+        ;;                         evaluate-network]]
+        [nnet.math-utilities :as utils :only [approx-equals?]])) 
 
 (def my-wh (matrix [[0.362985 0.418378 0.0]
                     [-0.464489 -0.554121 0.0]
@@ -22,6 +21,13 @@
 
 (def learning-rate 0.001)
 
+(defn activation-function
+  ;This is the sigmoid activation function used by each individual neuron.
+  ;This version scales the tanh function to saturate at yyyy and have its 
+  ;maximal derivative at +- xxxx as suggested in Haykin.
+  [x]
+  (* 1.7159 (Math/tanh (* 0.6666 x))))
+
 (defn activation-function-deriv
   ; Clearly this is the derivative of the activation function.
   ; Hard-coded for now.
@@ -35,19 +41,49 @@
 ; output weights: del wij = (lambda)(ej)(Phi-prime(vj)(yi)
 ; vj = induced local field of neuron j (mmult (trans h) w)
 
-(defn train
-  [n]
-  (loop []
-    (let [current-hidden-layer (n/hidden-layer input-vector my-wh)]
-      (let [current-output (n/output-layer current-hidden-layer my-wo)]
-        (let [current-error-vector (minus desired-response current-output)]
-          (let [current-error-value (error-function current-error-vector)]
-            (println current-error-value)
-            (let [is-minimized? (utils/approx-equals? current-error-value 0.0)]
-              (println is-minimized?)
-              (if (not is-minimized?)
+(defrecord NeuralNet [hidden-weights output-weights])
+
+(defrecord HiddenLayer [input-values induced-local-field hidden-layer-values])
+(defrecord OutputLayer [hidden-layer induced-local-field output-layer-values])
+(defrecord ForwardPassResults [hidden-layer output-layer])
+
+
+
+(defn forward-pass-hidden
+  [net input-vector]
+  (let [ilf (mmult input-vector (.hidden-weights net))]
+    (let [hlv (matrix (mapv activation-function ilf))]
+      (->HiddenLayer input-vector ilf hlv))))
+
+(defn forward-pass-output
+  [net hl]
+  (let [ilf (mmult (trans (.hidden-layer-values hl)) (.output-weights net))]
+    (let [olv (matrix (mapv activation-function ilf))]
+      (->OutputLayer hl ilf olv))))
+
+(defn forward-pass
+  [net input-vector]
+  (let [hl (forward-pass-hidden net input-vector)]
+    (let [ol (forward-pass-output net hl)]
+      (->ForwardPassResults hl ol))))
+
+(defn backward-pass-output
+  [net fpr]
+  )
+
+;; (defn train
+;;   [net]
+;;   (loop []
+;;     (let [current-hidden-layer (n/hidden-layer input-vector (.hidden-weights net))]
+;;       (let [current-output (n/output-layer current-hidden-layer (.output-weights net))]
+;;         (let [current-error-vector (minus desired-response current-output)]
+;;           (let [current-error-value (error-function current-error-vector)]
+;;             (println current-error-value)
+;;             (let [is-minimized? (utils/approx-equals? current-error-value 0.0)]
+;;               (println is-minimized?)
+;;               (if (not is-minimized?)
                 
-                (recur)))))))))
+;;                 (recur)))))))))
 
 
 
