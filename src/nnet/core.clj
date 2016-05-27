@@ -1,7 +1,7 @@
 (ns nnet.core
-  (:gen-class))
-
-(use 'nnet.nnet)
+  (:gen-class)
+  (:use [nnet.nnet :as n]
+        [nnet.backprop :as backprop]))
 
 
 (defn -main
