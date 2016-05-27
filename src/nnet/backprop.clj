@@ -73,7 +73,9 @@
   [net desired-response fpr]
   (let [current-error-vector (minus desired-response (.output-layer-values  (.output-layer fpr)))]
     (let [current-del-output (mult current-error-vector (mapv activation-function-deriv (.induced-local-field (.output-layer fpr))))]
-      (print current-del-output))))
+      (let [delta-W (mmult (.hidden-layer-values (.hidden-layer fpr)) (trans current-del-output))]
+        (->BackwardPassOL fpr current-error-vector current-del-output delta-W)
+        ))))
 
 ;; (defn train
 ;;   [net]
@@ -88,6 +90,7 @@
 ;;               (if (not is-minimized?)
                 
 ;;                 (recur)))))))))
+
 
 
 
