@@ -47,7 +47,9 @@
 (defrecord OutputLayer [hidden-layer induced-local-field output-layer-values])
 (defrecord ForwardPassResults [hidden-layer output-layer])
 
+(defrecord BackwardPassOL [forward-pass-results error-vector-output del-output delta-W-output])
 
+(def test-net (->NeuralNet my-wh my-wo))
 
 (defn forward-pass-hidden
   [net input-vector]
@@ -68,8 +70,10 @@
       (->ForwardPassResults hl ol))))
 
 (defn backward-pass-output
-  [net fpr]
-  )
+  [net desired-response fpr]
+  (let [current-error-vector (minus desired-response (.output-layer-values  (.output-layer fpr)))]
+    (let [current-del-output (mult current-error-vector (mapv activation-function-deriv (.induced-local-field (.output-layer fpr))))]
+      (print current-del-output))))
 
 ;; (defn train
 ;;   [net]
