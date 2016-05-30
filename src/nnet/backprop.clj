@@ -4,7 +4,8 @@
         ;;                         hidden-layer
         ;;                         output-layer
         ;;                         evaluate-network]]
-        [nnet.math-utilities :as utils :only [approx-equals?]])) 
+   [nnet.math-utilities :as utils :only [approx-equals?
+                                         n-ones-and-a-zero]])) 
 
 (def my-wh (matrix [[0.362985 0.418378 0.0]
                     [-0.464489 -0.554121 0.0]
@@ -35,11 +36,9 @@
   (/ 0.1439333 (utils/my-sq (Math/cosh (* 0.66666 x)))))
 
 (defn error-function
+  ; simple sum-of-squared-errors error function
   [err-vector]
   (reduce + (map utils/my-sq err-vector)))
-
-; output weights: del wij = (lambda)(ej)(Phi-prime(vj)(yi)
-; vj = induced local field of neuron j (mmult (trans h) w)
 
 (defrecord NeuralNet [hidden-weights output-weights])
 
@@ -49,7 +48,26 @@
 
 (defrecord BackwardPassOL [forward-pass-results error-vector-output del-output delta-W-output])
 
+(defrecord BackwardPassHL [backward-pass-ol del-hidden delta-W-hidden])
+(defrecord BackwardPassResults [hidden-layer output-layer])
+
 (def test-net (->NeuralNet my-wh my-wo))
+
+(defn identity-matrix-with-one-zero
+  [n]
+  (diag (utils/n-ones-and-a-zero n)))
+
+(defn number-of-input-neurons
+  [net]
+  (nrow (.hidden-weights net)))
+
+(defn number-of-hidden-neurons
+  [net]
+  (ncol (.hidden-weights net)))
+
+(defn number-of-output-neurons
+  [net]
+  (nrow (.output-weights net)))
 
 (defn forward-pass-hidden
   [net input-vector]
@@ -73,9 +91,12 @@
   [net desired-response fpr]
   (let [current-error-vector (minus desired-response (.output-layer-values  (.output-layer fpr)))]
     (let [current-del-output (mult current-error-vector (mapv activation-function-deriv (.induced-local-field (.output-layer fpr))))]
-      (let [delta-W (mmult (.hidden-layer-values (.hidden-layer fpr)) (trans current-del-output))]
-        (->BackwardPassOL fpr current-error-vector current-del-output delta-W)
-        ))))
+      (let [delta-W (mult learning-rate (mmult (.hidden-layer-values (.hidden-layer fpr)) (trans current-del-output)))]
+        (->BackwardPassOL fpr current-error-vector current-del-output delta-W)))))
+
+(defn backward-pass-hidden
+  [net bpo]
+  )
 
 ;; (defn train
 ;;   [net]
@@ -87,11 +108,5 @@
 ;;             (println current-error-value)
 ;;             (let [is-minimized? (utils/approx-equals? current-error-value 0.0)]
 ;;               (println is-minimized?)
-;;               (if (not is-minimized?)
-                
+;;               (if (not is-minimized?)              
 ;;                 (recur)))))))))
-
-
-
-
-

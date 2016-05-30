@@ -15,3 +15,10 @@
   ; simple epsilon-type real number equality comparison
   [x y]
   (<= (Math/abs (- x y)) my-eps))
+
+(defn n-ones-and-a-zero
+  ; Returns a vector of n ones followed by one zero.
+  ; Used to construct an nxn identity matrix with
+  ; its last 1 zeroed out.
+  [n]
+  (conj (vec (take n (repeat 1))) 0.0))
