@@ -44,10 +44,9 @@
 
 (defrecord HiddenLayer [input-values induced-local-field hidden-layer-values])
 (defrecord OutputLayer [hidden-layer induced-local-field output-layer-values])
-(defrecord ForwardPassResults [hidden-layer output-layer])
+(defrecord ForwardPassResults [input-vector hidden-layer output-layer])
 
 (defrecord BackwardPassOL [forward-pass-results error-vector-output del-output delta-W-output])
-
 (defrecord BackwardPassHL [backward-pass-ol del-hidden delta-W-hidden])
 (defrecord BackwardPassResults [hidden-layer output-layer])
 
@@ -59,15 +58,15 @@
 
 (defn number-of-input-neurons
   [net]
-  (nrow (.hidden-weights net)))
+  (- (nrow (.hidden-weights net)) 1))
 
 (defn number-of-hidden-neurons
   [net]
-  (ncol (.hidden-weights net)))
+  (- (ncol (.hidden-weights net)) 1))
 
 (defn number-of-output-neurons
   [net]
-  (nrow (.output-weights net)))
+  (ncol (.output-weights net)))
 
 (defn forward-pass-hidden
   [net input-vector]
@@ -85,7 +84,7 @@
   [net input-vector]
   (let [hl (forward-pass-hidden net input-vector)]
     (let [ol (forward-pass-output net hl)]
-      (->ForwardPassResults hl ol))))
+      (->ForwardPassResults input-vector hl ol))))
 
 (defn backward-pass-output
   [net desired-response fpr]
@@ -94,9 +93,31 @@
       (let [delta-W (mult learning-rate (mmult (.hidden-layer-values (.hidden-layer fpr)) (trans current-del-output)))]
         (->BackwardPassOL fpr current-error-vector current-del-output delta-W)))))
 
+(defn calculate-del-h
+  [net bpo]
+  (let [n (number-of-hidden-neurons net)]
+    (let [A (diag (utils/n-ones-and-a-zero n))]
+      (let [temp (mmult A (.output-weights net))]
+        (let [D (mult temp (.del-output bpo))]
+          (let [vhidden (.induced-local-field (.hidden-layer (.forward-pass-results bpo)))]
+            (let [T (matrix (mapv activation-function-deriv vhidden))]
+              (mult T D))))))))
+
 (defn backward-pass-hidden
   [net bpo]
-  )
+  (let [del-h (calculate-del-h net bpo)]
+    (let [delta-W (mult learning-rate (mmult (trans (.input-vector (.forward-pass-results bpo))) (trans del-h)))]
+      (->BackwardPassHL bpo del-h delta-W))))
+
+(defn backward-pass
+  [net desired-response fpr]
+  (let [bpo (backward-pass-output net desired-response fpr)]
+    (let [bph (backward-pass-hidden net bpo)]
+      (->BackwardPassResults bph bpo))))
+
+
+
+;;(mapv activation-function-deriv (.induced-local-field (.hidden-layer (.forward-pass-results bpo))))
 
 ;; (defn train
 ;;   [net]
@@ -110,3 +131,8 @@
 ;;               (println is-minimized?)
 ;;               (if (not is-minimized?)              
 ;;                 (recur)))))))))
+
+
+
+
+
