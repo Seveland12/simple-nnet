@@ -1,3 +1,3 @@
 # Introduction to nnet
 
-TODO: write [great documentation](http://jacobian.org/writing/what-to-write/)
+$$I = \int \rho R^{2} dV$$
