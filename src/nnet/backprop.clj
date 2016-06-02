@@ -44,9 +44,9 @@
 
 (defrecord HiddenLayer [input-values induced-local-field hidden-layer-values])
 (defrecord OutputLayer [hidden-layer induced-local-field output-layer-values])
-(defrecord ForwardPassResults [input-vector hidden-layer output-layer])
+(defrecord ForwardPassResults [hidden-layer output-layer])
 
-(defrecord BackwardPassOL [forward-pass-results error-vector-output del-output delta-W-output])
+(defrecord BackwardPassOL [forward-pass-results error-vector del-output delta-W-output])
 (defrecord BackwardPassHL [backward-pass-ol del-hidden delta-W-hidden])
 (defrecord BackwardPassResults [hidden-layer output-layer])
 
@@ -84,7 +84,7 @@
   [net input-vector]
   (let [hl (forward-pass-hidden net input-vector)
         ol (forward-pass-output net hl)]
-    (->ForwardPassResults input-vector hl ol)))
+    (->ForwardPassResults hl ol)))
 
 (defn backward-pass-output
   [net desired-response fpr]
@@ -107,7 +107,7 @@
 (defn backward-pass-hidden
   [net bpo]
   (let [del-h (calculate-del-h net bpo)
-        delta-W (mult learning-rate (mmult (trans (.input-vector (.forward-pass-results bpo))) (trans del-h)))]
+        delta-W (mult learning-rate (mmult (trans (.input-values (.hidden-layer (.forward-pass-results bpo)))) (trans del-h)))]
     (->BackwardPassHL bpo del-h delta-W)))
 
 (defn backward-pass
@@ -116,9 +116,23 @@
         bph (backward-pass-hidden net bpo)]
     (->BackwardPassResults bph bpo)))
 
+(defn adjust-weights
+  [net delta-W-hidden delta-W-output]
+  (let [new-wh (plus (.hidden-weights net) delta-W-hidden)
+        new-wo (plus (.output-weights net) delta-W-output)]
+    (->NeuralNet new-wh new-wo)))
 
+(defn iteration
+  [net i d]
+  (let [fp (forward-pass net i)
+        bp (backward-pass net d fp)
+        delta-wh (.delta-W-hidden (.hidden-layer bp))
+        delta-wo (.delta-W-output (.output-layer bp))
+        current-error-vector (.error-vector (.output-layer bp))]
+    (do
+      (print (error-function current-error-vector))
+      (adjust-weights net delta-wh delta-wo))))
 
-;;(mapv activation-function-deriv (.induced-local-field (.hidden-layer (.forward-pass-results bpo))))
 
 ;; (defn train
 ;;   [net]
