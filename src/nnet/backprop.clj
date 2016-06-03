@@ -132,7 +132,7 @@
 
 (defn iteration
   ([net training-example]
-   (iteration net (trans (matrix (.input-vector training-example))) (.desired-response training-example)))
+   (iteration net (trans (matrix (.input-vector training-example))) (matrix (.desired-response training-example))))
 
   ([net i d]
    (let [fp (forward-pass net i)
