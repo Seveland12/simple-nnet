@@ -1,5 +1,6 @@
 (ns nnet.backprop
-  (:require (incanter [core :refer :all]))
+  (:require [incanter [core :refer :all]]
+            [clojure.data.json :as json])
   (:use ;; [nnet.nnet :as n :only [activation-function
         ;;                         hidden-layer
         ;;                         output-layer
@@ -19,6 +20,13 @@
 
 (def desired-response
   (matrix [0.5]))
+
+(defrecord TrainingExample [input-vector desired-response])
+
+(def training-set-xor [(->TrainingExample [-0.5 -0.5 1.0] [-0.5])
+                       (->TrainingExample [-0.5 0.5 1.0] [0.5])
+                       (->TrainingExample [0.5 -0.5 1.0] [0.5])
+                       (->TrainingExample [0.5 0.5 1.0] [-0.5])])
 
 (def learning-rate 0.001)
 
@@ -123,29 +131,24 @@
     (->NeuralNet new-wh new-wo)))
 
 (defn iteration
-  [net i d]
-  (let [fp (forward-pass net i)
-        bp (backward-pass net d fp)
-        delta-wh (.delta-W-hidden (.hidden-layer bp))
-        delta-wo (.delta-W-output (.output-layer bp))
-        current-error-vector (.error-vector (.output-layer bp))]
-    (do
-      (print (error-function current-error-vector))
-      (adjust-weights net delta-wh delta-wo))))
+  ([net training-example]
+   (iteration net (trans (matrix (.input-vector training-example))) (.desired-response training-example)))
+
+  ([net i d]
+   (let [fp (forward-pass net i)
+         bp (backward-pass net d fp)
+         delta-wh (.delta-W-hidden (.hidden-layer bp))
+         delta-wo (.delta-W-output (.output-layer bp))
+         current-error-vector (.error-vector (.output-layer bp))]
+     (do
+       (print (error-function current-error-vector))
+       (adjust-weights net delta-wh delta-wo)))))
 
 
-;; (defn train
-;;   [net]
-;;   (loop []
-;;     (let [current-hidden-layer (n/hidden-layer input-vector (.hidden-weights net))]
-;;       (let [current-output (n/output-layer current-hidden-layer (.output-weights net))]
-;;         (let [current-error-vector (minus desired-response current-output)]
-;;           (let [current-error-value (error-function current-error-vector)]
-;;             (println current-error-value)
-;;             (let [is-minimized? (utils/approx-equals? current-error-value 0.0)]
-;;               (println is-minimized?)
-;;               (if (not is-minimized?)              
-;;                 (recur)))))))))
+
+
+
+
 
 
 
