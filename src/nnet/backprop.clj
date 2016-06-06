@@ -13,14 +13,6 @@
                     [-0.720958 0.504430 1.0]]))
 (def my-wo (matrix [0.620124 -0.446396 0.692502]))
 
-(def input-vector
-  ; input-vector has an extra final component = 1.0 to accomodate the
-  ; bias terms
-  (trans (matrix [0.5 -0.5 1.0])))
-
-(def desired-response
-  (matrix [0.5]))
-
 (defrecord TrainingExample [input-vector desired-response])
 
 (def training-set-xor [(->TrainingExample [-0.5 -0.5 1.0] [-0.5])
@@ -28,7 +20,7 @@
                        (->TrainingExample [0.5 -0.5 1.0] [0.5])
                        (->TrainingExample [0.5 0.5 1.0] [-0.5])])
 
-(def learning-rate 0.001)
+(def learning-rate 0.1)
 
 (defn activation-function
   ;This is the sigmoid activation function used by each individual neuron.
@@ -57,6 +49,8 @@
 (defrecord BackwardPassOL [forward-pass-results error-vector del-output delta-W-output])
 (defrecord BackwardPassHL [backward-pass-ol del-hidden delta-W-hidden])
 (defrecord BackwardPassResults [hidden-layer output-layer])
+
+(defrecord IterationResults [current-net error-value])
 
 (def test-net (->NeuralNet my-wh my-wo))
 
@@ -94,6 +88,12 @@
         ol (forward-pass-output net hl)]
     (->ForwardPassResults hl ol)))
 
+(defn evaluate-network
+  [net input-vector]
+  (let [input-vector-transpose (trans (matrix input-vector))
+        forward-pass-results (forward-pass net input-vector-transpose)]
+    (.output-layer-values (.output-layer forward-pass-results))))
+
 (defn backward-pass-output
   [net desired-response fpr]
   (let [current-error-vector (minus desired-response (.output-layer-values  (.output-layer fpr)))
@@ -130,6 +130,24 @@
         new-wo (plus (.output-weights net) delta-W-output)]
     (->NeuralNet new-wh new-wo)))
 
+(defn add-network-weights
+  [net1 net2]
+  (let [wh-new (plus (.hidden-weights net1) (.hidden-weights net2))
+        wo-new (plus (.output-weights net1) (.output-weights net2))]
+    (->NeuralNet wh-new wo-new)))
+
+(defn epoch-reducer
+  [result1 result2]
+  (let [net1 (.current-net result1)
+        net2 (.current-net result2)
+        error1 (.error-value result1)
+        error2 (.error-value result2)
+        wh-new (plus (.hidden-weights net1) (.hidden-weights net2))
+        wo-new (plus (.output-weights net1) (.output-weights net2))
+        new-net (->NeuralNet wh-new wo-new)
+        total-error (+ error1 error2)]
+    (->IterationResults new-net total-error)))
+
 (defn iteration
   ([net training-example]
    (iteration net (trans (matrix (.input-vector training-example))) (matrix (.desired-response training-example))))
@@ -139,18 +157,20 @@
          bp (backward-pass net d fp)
          delta-wh (.delta-W-hidden (.hidden-layer bp))
          delta-wo (.delta-W-output (.output-layer bp))
-         current-error-vector (.error-vector (.output-layer bp))]
+         current-error-vector (.error-vector (.output-layer bp))
+         current-error-value (error-function current-error-vector)]
      (do
-       (print (error-function current-error-vector))
-       (adjust-weights net delta-wh delta-wo)))))
+       (->IterationResults (->NeuralNet delta-wh delta-wo) current-error-value)))))
 
-
-
-
-
-
-
-
-
-
-
+(defn train
+  [net training-set]
+  (let [num-examples (length training-set)]
+    (loop [current-net net current-err 999.0]
+      (let [current-iteration-adjustment (reduce epoch-reducer (map (partial iteration current-net) training-set))
+            current-iteration-result (add-network-weights current-net (.current-net current-iteration-adjustment))]
+        (let [current-avg-err (/ (.error-value current-iteration-adjustment) num-examples)]
+          (do
+            (println current-avg-err)
+            (if-not (approx-equals? current-avg-err 0.0)
+              (recur current-iteration-result current-avg-err)
+              current-net)))))))
