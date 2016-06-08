@@ -1,12 +1,10 @@
 (ns nnet.backprop
   (:require [incanter [core :refer :all]]
-            [clojure.data.json :as json])
-  (:use ;; [nnet.nnet :as n :only [activation-function
-        ;;                         hidden-layer
-        ;;                         output-layer
-        ;;                         evaluate-network]]
-   [nnet.math-utilities :as utils :only [approx-equals?
-                                         n-ones-and-a-zero]])) 
+            [clojure.data.json :as json]
+            [nnet.data-structures :refer :all]
+            [nnet.nnet :refer :all])
+  (:use [nnet.math-utilities :as utils :only [approx-equals?
+                                              n-ones-and-a-zero]]))
 
 (def my-wh (matrix [[0.362985 0.418378 0.0]
                     [-0.464489 -0.554121 0.0]
@@ -22,29 +20,10 @@
 
 (def learning-rate 0.1)
 
-(defn activation-function
-  ;This is the sigmoid activation function used by each individual neuron.
-  ;This version scales the tanh function to saturate at yyyy and have its 
-  ;maximal derivative at +- xxxx as suggested in Haykin.
-  [x]
-  (* 1.7159 (Math/tanh (* 0.6666 x))))
-
-(defn activation-function-deriv
-  ; Clearly this is the derivative of the activation function.
-  ; Hard-coded for now.
-  [x]
-  (/ 0.1439333 (utils/my-sq (Math/cosh (* 0.66666 x)))))
-
 (defn error-function
   ; simple sum-of-squared-errors error function
   [err-vector]
   (reduce + (map utils/my-sq err-vector)))
-
-(defrecord NeuralNet [hidden-weights output-weights])
-
-(defrecord HiddenLayer [input-values induced-local-field hidden-layer-values])
-(defrecord OutputLayer [hidden-layer induced-local-field output-layer-values])
-(defrecord ForwardPassResults [hidden-layer output-layer])
 
 (defrecord BackwardPassOL [forward-pass-results error-vector del-output delta-W-output])
 (defrecord BackwardPassHL [backward-pass-ol del-hidden delta-W-hidden])
@@ -57,42 +36,6 @@
 (defn identity-matrix-with-one-zero
   [n]
   (diag (utils/n-ones-and-a-zero n)))
-
-(defn number-of-input-neurons
-  [net]
-  (- (nrow (.hidden-weights net)) 1))
-
-(defn number-of-hidden-neurons
-  [net]
-  (- (ncol (.hidden-weights net)) 1))
-
-(defn number-of-output-neurons
-  [net]
-  (ncol (.output-weights net)))
-
-(defn forward-pass-hidden
-  [net input-vector]
-  (let [ilf (mmult input-vector (.hidden-weights net))
-        hlv (matrix (mapv activation-function ilf))]
-    (->HiddenLayer input-vector ilf hlv)))
-
-(defn forward-pass-output
-  [net hl]
-  (let [ilf (mmult (trans (.hidden-layer-values hl)) (.output-weights net))
-        olv (matrix (mapv activation-function ilf))]
-    (->OutputLayer hl ilf olv)))
-
-(defn forward-pass
-  [net input-vector]
-  (let [hl (forward-pass-hidden net input-vector)
-        ol (forward-pass-output net hl)]
-    (->ForwardPassResults hl ol)))
-
-(defn evaluate-network
-  [net input-vector]
-  (let [input-vector-transpose (trans (matrix input-vector))
-        forward-pass-results (forward-pass net input-vector-transpose)]
-    (.output-layer-values (.output-layer forward-pass-results))))
 
 (defn backward-pass-output
   [net desired-response fpr]
