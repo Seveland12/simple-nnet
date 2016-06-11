@@ -6,12 +6,12 @@
   (:use [nnet.math-utilities :as utils :only [approx-equals?
                                               n-ones-and-a-zero]]))
 
+;; these three are just XOR net definitions to ease debugging of various functions
 (def my-wh (matrix [[0.362985 0.418378 0.0]
                     [-0.464489 -0.554121 0.0]
                     [-0.720958 0.504430 1.0]]))
 (def my-wo (matrix [0.620124 -0.446396 0.692502]))
-
-(defrecord TrainingExample [input-vector desired-response])
+(def test-net (->NeuralNet my-wh my-wo))
 
 (def training-set-xor [(->TrainingExample [-0.5 -0.5 1.0] [-0.5])
                        (->TrainingExample [-0.5 0.5 1.0] [0.5])
@@ -54,8 +54,6 @@
 (defrecord BackwardPassResults [hidden-layer output-layer])
 
 (defrecord IterationResults [current-net error-value])
-
-(def test-net (->NeuralNet my-wh my-wo))
 
 (defn identity-matrix-with-one-zero
   [n]
