@@ -74,7 +74,7 @@
   (let [n (number-of-hidden-neurons net)
         A (diag (utils/n-ones-and-a-zero n))
         temp (mmult A (.output-weights net))
-        D (mult temp (.del-output bpo))
+        D (mmult temp (.del-output bpo)) ;this is the problem
         vhidden (.induced-local-field (.hidden-layer (.forward-pass-results bpo)))
         T (matrix (mapv activation-function-deriv vhidden))]
     (mult T D)))
