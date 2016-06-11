@@ -45,7 +45,6 @@
   (let [n (length (.input-vector (nth training-set 0)))
         m n
         p (length (.desired-response (nth training-set 0)))
-        ; + 1 because of bias terms
         wh_0 (identity-matrix n)
         wo_0 (matrix 0.1 m p)]
     (->NeuralNet wh_0 wo_0)))
