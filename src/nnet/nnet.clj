@@ -1,6 +1,6 @@
 (ns nnet.nnet
-  (:require [incanter [core :refer :all]]
-            [nnet.data-structures :refer :all])
+  (:require [nnet.data-structures :refer :all]
+            [clojure.core.matrix :as cljmat])
   (:use [nnet.math-utilities :as utils :only [approx-equals?
                                               my-sq]])) 
 
@@ -20,28 +20,28 @@
 (defn number-of-input-neurons
   ; Returns the number of input neurons in NeuralNet net
   [net]
-  (- (nrow (.hidden-weights net)) 1))
+  (- (cljmat/row-count (.hidden-weights net)) 1))
 
 (defn number-of-hidden-neurons
   ; Returns the number of hidden neurons in NeuralNet net
   [net]
-  (- (ncol (.hidden-weights net)) 1))
+  (- (cljmat/column-count (.hidden-weights net)) 1))
 
 (defn number-of-output-neurons
   ; Returns the number of output neurons in NeuralNet net
   [net]
-  (ncol (.output-weights net)))
+  (cljmat/column-count (.output-weights net)))
 
 (defn forward-pass-hidden
   [net input-vector]
-  (let [ilf (mmult input-vector (.hidden-weights net))
-        hlv (matrix (mapv activation-function ilf))]
+  (let [ilf (cljmat/mmul input-vector (.hidden-weights net))
+        hlv (cljmat/matrix (mapv activation-function ilf))]
     (->HiddenLayer input-vector ilf hlv)))
 
 (defn forward-pass-output
   [net hl]
-  (let [ilf (mmult (trans (.hidden-layer-values hl)) (.output-weights net))
-        olv (matrix (mapv activation-function ilf))]
+  (let [ilf (cljmat/mmul (cljmat/transpose (.hidden-layer-values hl)) (.output-weights net))
+        olv (cljmat/matrix (mapv activation-function ilf))]
     (->OutputLayer hl ilf olv)))
 
 (defn forward-pass
@@ -52,6 +52,6 @@
 
 (defn evaluate-network
   [net input-vector]
-  (let [input-vector-transpose (trans (matrix input-vector))
+  (let [input-vector-transpose (cljmat/transpose (cljmat/matrix input-vector))
         forward-pass-results (forward-pass net input-vector-transpose)]
     (.output-layer-values (.output-layer forward-pass-results))))
