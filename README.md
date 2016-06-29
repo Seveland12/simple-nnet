@@ -2,7 +2,7 @@
 
 This is a simple multilayer perceptron implementation in Clojure.
 
-It's just a way for me to play around with Github, Clojure, and Incanter.
+It's just a way for me to play around with Github, Clojure, and clojure.core.matrix.
 
 
 ## Installation
