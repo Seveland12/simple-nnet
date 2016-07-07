@@ -32,16 +32,21 @@
   [net]
   (cljmat/column-count (.output-weights net)))
 
+(def activ-func-mapper (partial mapv activation-function))
+
 (defn forward-pass-hidden
   [net input-vector]
+  ; the cljmat/matrix "cast" might prove to be unnecessary in hlv
   (let [ilf (cljmat/mmul input-vector (.hidden-weights net))
-        hlv (cljmat/matrix (mapv activation-function ilf))]
+        hlv (mapv activ-func-mapper ilf)]
     (->HiddenLayer input-vector ilf hlv)))
 
 (defn forward-pass-output
   [net hl]
+  ; the problem is that the new transpose function doesn't transpose 1-d vectors. Can't imagine why
+  ; they made it that way....
   (let [ilf (cljmat/mmul (cljmat/transpose (.hidden-layer-values hl)) (.output-weights net))
-        olv (cljmat/matrix (mapv activation-function ilf))]
+        olv (mapv activ-func-mapper ilf)]
     (->OutputLayer hl ilf olv)))
 
 (defn forward-pass

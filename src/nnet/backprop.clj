@@ -20,20 +20,21 @@
   [err-vector]
   (reduce + (map utils/my-sq err-vector)))
 
-(defn initial-weights [to from]
-  (let [l (* to from)]
-    (map vec (partition from (repeatedly l #(rand (/ 1 l)))))))
+(defn initial-weights [from to]
+  ; returns a matrix of random initial weights
+  (let [x (* from to)]
+    (mapv vec (partition from (repeatedly x #(rand (/ 1 x)))))))
 
 (defn initial-net
-  ; n = # input layer neurons
-  ; m = # hidden layer neurons
+  ; n = # input layer neurons + 1
+  ; m = # hidden layer neurons + 1
   ; p = # output layer neurons
   [training-set]
   (let [n (cljmat/ecount (.input-vector (nth training-set 0)))
         m n
         p (cljmat/ecount (.desired-response (nth training-set 0)))
-        wh_0 (cljmat/matrix (initial-weights n m))
-        wo_0 (cljmat/matrix (initial-weights m p))] ;; need to figure out the correct way to initialize a matrix of a certain size
+        wh_0 (cljmat/identity-matrix n)
+        wo_0 (cljmat/matrix (initial-weights m p))] 
     (->NeuralNet wh_0 wo_0)))
 
 (defrecord BackwardPassOL [forward-pass-results error-vector del-output delta-W-output])
@@ -43,6 +44,8 @@
 (defrecord IterationResults [current-net error-value])
 
 (defn identity-matrix-with-one-zero
+  ; returns a matrix that is an identity matrix except for the bottom-right
+  ; element, which is 0.
   [n]
   (cljmat/diagonal-matrix (utils/n-ones-and-a-zero n)))
 
