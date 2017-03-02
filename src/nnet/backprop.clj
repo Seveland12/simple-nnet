@@ -2,7 +2,8 @@
   (:require [clojure.core.matrix :as m]
             [clojure.data.json :as json]
             [nnet.data-structures :refer :all]
-            [nnet.nnet :refer :all])
+            [nnet.nnet :refer :all]
+            [nnet.helpers :refer :all])
   (:use [nnet.math-utilities :as utils :only [approx-equals?
                                               n-ones-and-a-zero]]))
 
@@ -10,7 +11,7 @@
 (def my-wh (m/matrix [[0.362985 0.418378 0.0]
                     [-0.464489 -0.554121 0.0]
                     [-0.720958 0.504430 1.0]]))
-(def my-wo (m/matrix [0.620124 -0.446396 0.692502]))
+(def my-wo (m/matrix [[0.620124] [-0.446396] [0.692502]]))
 (def test-net (->NeuralNet my-wh my-wo))
 
 (def learning-rate 0.1)
@@ -18,7 +19,7 @@
 (defn error-function
   ; simple sum-of-squared-errors error function
   [err-vector]
-  (reduce + (map utils/my-sq err-vector)))
+  (reduce + (mapv (partial mapv utils/my-sq) err-vector)))
 
 (defn initial-weights [from to]
   ; returns a matrix of random initial weights
@@ -34,7 +35,7 @@
         m n
         p (m/ecount (.desired-response (nth training-set 0)))
         wh_0 (m/identity-matrix n)
-        wo_0 (m/matrix (initial-weights m p))] 
+        wo_0 (m/matrix (initial-weights p m))] 
     (->NeuralNet wh_0 wo_0)))
 
 (defrecord BackwardPassOL [forward-pass-results error-vector del-output delta-W-output])
@@ -52,8 +53,10 @@
 (defn backward-pass-output
   [net desired-response fpr]
   (let [current-error-vector (m/sub desired-response (.output-layer-values (.output-layer fpr)))
-        current-del-output (m/mul current-error-vector (mapv activation-function-deriv (.induced-local-field (.output-layer fpr))))
-        delta-W (m/mul learning-rate (m/mmul (.hidden-layer-values (.hidden-layer fpr)) (m/transpose current-del-output)))]
+        current-del-output (m/mul current-error-vector (mapv activ-func-deriv-mapper (.induced-local-field (.output-layer fpr))))
+        current-del-output-transpose (m/transpose current-del-output)
+        hidden-layer-values-transpose (m/transpose (.hidden-layer-values (.hidden_layer fpr)))
+        delta-W (m/mul learning-rate (m/mmul hidden-layer-values-transpose current-del-output-transpose))]
     (->BackwardPassOL fpr current-error-vector current-del-output delta-W)))
 
 (defn calculate-del-h
@@ -63,8 +66,9 @@
         temp (m/mmul A (.output-weights net))
         D (m/mmul temp (.del-output bpo)) ;this is the problem
         vhidden (.induced-local-field (.hidden-layer (.forward-pass-results bpo)))
-        T (m/matrix (mapv activation-function-deriv vhidden))]
-    (m/mul T D)))
+        T-transpose (m/matrix (mapv activ-func-deriv-mapper vhidden))
+        T (m/transpose T-transpose)]
+    (m/emul T D)))
 
 (defn backward-pass-hidden
   [net bpo]
@@ -99,12 +103,12 @@
         wh-new (m/add (.hidden-weights net1) (.hidden-weights net2))
         wo-new (m/add (.output-weights net1) (.output-weights net2))
         new-net (->NeuralNet wh-new wo-new)
-        total-error (+ error1 error2)]
+        total-error (m/add error1 error2)]
     (->IterationResults new-net total-error)))
 
 (defn iteration
   ([net training-example]
-   (iteration net (m/transpose (m/matrix (.input-vector training-example))) (m/matrix (.desired-response training-example))))
+   (iteration net (m/matrix (.input-vector training-example)) (m/matrix (.desired-response training-example))))
 
   ([net i d]
    (let [fp (forward-pass net i)
@@ -125,9 +129,9 @@
      (loop [current-net net current-err 999.0]
        (let [current-iteration-adjustment (reduce epoch-reducer (map (partial iteration current-net) training-set))
              current-iteration-result (add-network-weights current-net (.current-net current-iteration-adjustment))]
-         (let [current-avg-err (/ (.error-value current-iteration-adjustment) num-examples)]
+         (let [current-avg-err (m/mul (.error-value current-iteration-adjustment) (/ 1.0 num-examples))]
            (do
              (println current-avg-err)
-             (if-not (approx-equals? current-avg-err 0.0)
+             (if-not (approx-equals? (current-avg-err 0) 0.0)
                (recur current-iteration-result current-avg-err)
                current-net))))))))
