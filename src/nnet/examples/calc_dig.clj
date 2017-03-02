@@ -15,9 +15,9 @@
                             ])
 
 
-(def output-mean-vector [[0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5]])
+(def calc-dig-output-mean-vector [[0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5]])
 
-(defn response-interpretation
+(defn calc-dig-response-interpretation
   [output-vector]
-  (let [mean-added (m/add output-vector output-mean-vector)]
+  (let [mean-added (m/add output-vector calc-dig-output-mean-vector)]
     mean-added))

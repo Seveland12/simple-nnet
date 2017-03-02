@@ -7,9 +7,9 @@
                        (->TrainingExample [[0.5 -0.5 1.0]] [[0.5]])
                        (->TrainingExample [[0.5 0.5 1.0]] [[-0.5]])])
 
-(def output-mean-vector [[0.5]])
+(def xor-output-mean-vector [[0.5]])
 
-(defn response-interpretation
+(defn xor-response-interpretation
   [output-vector]
-  (let [mean-added (m/add output-vector output-mean-vector)]
+  (let [mean-added (m/add output-vector xor-output-mean-vector)]
     mean-added))

@@ -56,7 +56,7 @@
         current-del-output (m/mul current-error-vector (mapv activ-func-deriv-mapper (.induced-local-field (.output-layer fpr))))
         current-del-output-transpose (m/transpose current-del-output)
         hidden-layer-values-transpose (m/transpose (.hidden-layer-values (.hidden_layer fpr)))
-        delta-W (m/mul learning-rate (m/mmul hidden-layer-values-transpose current-del-output-transpose))]
+        delta-W (m/mul learning-rate (m/mmul hidden-layer-values-transpose current-del-output))]
     (->BackwardPassOL fpr current-error-vector current-del-output delta-W)))
 
 (defn calculate-del-h
@@ -64,7 +64,7 @@
   (let [n (number-of-hidden-neurons net)
         A (m/diagonal-matrix (utils/n-ones-and-a-zero n))
         temp (m/mmul A (.output-weights net))
-        D (m/mmul temp (.del-output bpo)) ;this is the problem
+        D (m/mmul temp (m/transpose (.del-output bpo))) ;this is the problem
         vhidden (.induced-local-field (.hidden-layer (.forward-pass-results bpo)))
         T-transpose (m/matrix (mapv activ-func-deriv-mapper vhidden))
         T (m/transpose T-transpose)]
