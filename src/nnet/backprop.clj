@@ -118,8 +118,7 @@
          delta-wo (.delta-W-output (.output-layer bp))
          current-error-vector (.error-vector (.output-layer bp))
          current-error-value (error-function current-error-vector)]
-     (do
-       (->IterationResults (->NeuralNet delta-wh delta-wo) current-error-value)))))
+     (->IterationResults (->NeuralNet delta-wh delta-wo) current-error-value))))
 
 (defn train
   ([training-set]
@@ -131,8 +130,7 @@
        (let [current-iteration-adjustment (reduce epoch-reducer (map (partial iteration current-net) training-set))
              current-iteration-result (add-network-weights current-net (.current-net current-iteration-adjustment))]
          (let [current-avg-err (m/mul (.error-value current-iteration-adjustment) (/ 1.0 num-examples))]
-           (do
-             (println current-avg-err)
-             (if-not (approx-equals? (current-avg-err 0) 0.0)
-               (recur current-iteration-result current-avg-err)
-               current-net))))))))
+           (println current-avg-err)
+           (if-not (approx-equals? (current-avg-err 0) 0.0)
+             (recur current-iteration-result current-avg-err)
+             current-net)))))))

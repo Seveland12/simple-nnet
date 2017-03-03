@@ -7,12 +7,12 @@
 (defn number-of-input-neurons
   ; Returns the number of input neurons in NeuralNet net
   [net]
-  (- (m/row-count (.hidden-weights net)) 1))
+  (dec (m/row-count (.hidden-weights net))))
 
 (defn number-of-hidden-neurons
   ; Returns the number of hidden neurons in NeuralNet net
   [net]
-  (- (m/column-count (.hidden-weights net)) 1))
+  (dec (m/column-count (.hidden-weights net))))
 
 (defn number-of-output-neurons
   ; Returns the number of output neurons in NeuralNet net
