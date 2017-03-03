@@ -5,7 +5,8 @@
             [nnet.nnet :refer :all]
             [nnet.helpers :refer :all])
   (:use [nnet.math-utilities :as utils :only [approx-equals?
-                                              n-ones-and-a-zero]]))
+                                              n-ones-and-a-zero
+                                              my-sq]]))
 
 ;; these three are just XOR net definitions to ease debugging of various functions
 (def my-wh (m/matrix [[0.362985 0.418378 0.0]

@@ -1,20 +1,21 @@
-(ns nnet.math-utilities)
+(ns nnet.math-utilities
+  (:use [clojure.math.numeric-tower :as cljmath]))
 
 (def my-eps
   ; This is the epsilon to use for "real number"
   ; equality comparisons 
-  0.000001)
+  0.0001)
 
 (defn my-sq
   ; simple square function. there has to be
   ; a build-in pow equivalent, right?
   [x]
-  (* x x))
+  (cljmath/expt x 2))
 
 (defn approx-equals?
   ; simple epsilon-type real number equality comparison
   [x y]
-  (<= (Math/abs (- x y)) my-eps))
+  (<= (cljmath/abs (- x y)) my-eps))
 
 (defn n-ones-and-a-zero
   ; Returns a vector of n ones followed by one zero.
