@@ -1,5 +1,5 @@
 (ns nnet.math-utilities
-  (:use [clojure.math.numeric-tower :as cljmath]))
+  (:require [clojure.math.numeric-tower :as cljmath]))
 
 (def my-eps
   ; This is the epsilon to use for "real number"

@@ -3,10 +3,8 @@
             [clojure.data.json :as json]
             [nnet.data-structures :refer :all]
             [nnet.nnet :refer :all]
-            [nnet.helpers :refer :all])
-  (:use [nnet.math-utilities :as utils :only [approx-equals?
-                                              n-ones-and-a-zero
-                                              my-sq]]))
+            [nnet.helpers :refer :all]
+            [nnet.math-utilities :as utils]))
 
 ;; these three are just XOR net definitions to ease debugging of various functions
 (def my-wh (m/matrix [[0.362985 0.418378 0.0]
@@ -131,6 +129,6 @@
              current-iteration-result (add-network-weights current-net (.current-net current-iteration-adjustment))]
          (let [current-avg-err (m/mul (.error-value current-iteration-adjustment) (/ 1.0 num-examples))]
            (println current-avg-err)
-           (if-not (approx-equals? (current-avg-err 0) 0.0)
+           (if-not (utils/approx-equals? (current-avg-err 0) 0.0)
              (recur current-iteration-result current-avg-err)
              current-net)))))))

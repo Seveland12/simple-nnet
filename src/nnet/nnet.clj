@@ -1,9 +1,8 @@
 (ns nnet.nnet
   (:require [nnet.data-structures :refer :all]
             [nnet.helpers :refer :all]
-            [clojure.core.matrix :as m])
-  (:use [nnet.math-utilities :as utils :only [approx-equals?
-                                              my-sq]])) 
+            [clojure.core.matrix :as m]
+            [nnet.math-utilities :as utils])) 
 
 (defn activation-function
   ;This is the sigmoid activation function used by each individual neuron.

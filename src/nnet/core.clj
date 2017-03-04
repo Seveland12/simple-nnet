@@ -1,6 +1,6 @@
 (ns nnet.core
   (:gen-class)
-  (:use [nnet.nnet :as n]
+  (:require [nnet.nnet :as n]
         [nnet.backprop :as backprop]
         [nnet.examples.xor :as xor]
         [nnet.examples.calc-dig :as calc-dig]
