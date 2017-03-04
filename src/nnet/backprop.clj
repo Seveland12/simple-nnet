@@ -127,8 +127,8 @@
      (loop [current-net net current-err 999.0]
        (let [current-iteration-adjustment (reduce epoch-reducer (map (partial iteration current-net) training-set))
              current-iteration-result (add-network-weights current-net (.current-net current-iteration-adjustment))]
-         (let [current-avg-err (m/mul (.error-value current-iteration-adjustment) (/ 1.0 num-examples))]
+         (let [current-avg-err (m/mul (reduce + (.error-value current-iteration-adjustment)) (/ 1.0 num-examples))]
            (println current-avg-err)
-           (if-not (utils/approx-equals? (current-avg-err 0) 0.0)
+           (if-not (utils/approx-equals? current-avg-err 0.0)
              (recur current-iteration-result current-avg-err)
              current-net)))))))
